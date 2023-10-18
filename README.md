@@ -49,7 +49,50 @@ Additionally, `Network:Init` sets up the module's context, determining whether i
 
 ## Anti Data-Loss Proposital Client
 
-There is also an implementation of **Anti Data-Loss Proposital** on the client side. This is a security measure to prevent accidental data loss. Under certain circumstances, such as when the player attempts to pass parameters that could result in data loss, like "nan" or utf8 with a length of "nil", the module ensures that these parameters are handled safely to maintain data integrity and game stability.
+The implementation of "Anti Data-Loss Proposital" on the client side is a security measure designed to prevent accidental data loss. In certain situations, like attempting to pass parameters that could result in data loss (e.g., "nan" or utf8 with a length of "nil"), the module ensures safe handling to maintain data integrity and game stability.
+
+It's important to note that while this implementation enhances security, it's not a foolproof solution. Each game is unique with specific requirements and scenarios, necessitating further modifications and customizations for comprehensive security.
+
+A recommended best practice is to implement a mechanism to detect and penalize players on the server side if such modified parameters are detected. This would indicate potential tampering with the module by an exploiter and can act as a deterrent, further enhancing the game's security.
+
+Developers should continually review and adapt the code, staying informed about the latest security best practices and Roblox platform updates to ensure their games remain as secure as possible.
+
+## Options
+
+### RemotesToGUID
+Setting this option to `true` will hide remotes by giving them random GUID-based names. When disabled, the names of the remotes will be invisible, which is highly recommended to prevent exploiters from identifying them through remotespy.
+
+### StringLimiterLength
+This option determines the maximum length accepted for strings. If a string exceeds this length, it will be truncated to the specified length.
+
+### TableLimiter
+When set to `true`, this option enables checking the number of tables stacked on top of each other. If the number of tables exceeds the value specified in `TableExceeded`, an empty table will be returned. This feature helps prevent server lag caused by excessive nested tables.
+
+### TableExceeded
+This option specifies the maximum allowed limit for nested tables. If the number of nested tables exceeds this limit, an empty table will be returned to maintain server performance. For example:
+
+#### Example
+Consider the following Luay table where the `TableExceeded` option is set to 5:
+
+```lua
+local TableExample = {
+	a = {
+		b = {
+			c = {
+				d = { 
+					e = {}
+				}
+			}
+		}
+	},
+	
+	c = {
+		b = 2,
+	}
+}
+```
+
+In this example, the index "a" would return an empty table because it has 5 nested tables, which exceeds the specified limit of 2. However, the index "c" only has one nested table, so it would return the normal table.
 
 ## Copyright
 

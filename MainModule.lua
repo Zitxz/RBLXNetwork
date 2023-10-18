@@ -22,7 +22,16 @@ local HttpService: HttpService = game:GetService("HttpService")
 local ClientServer: FunctionsClientServer = Network.ClientServer
 local MyRemotes: RemotesData = Network.Remotes
 
+--// Options
+
 local RemotesToGUID : boolean = false
+
+--// Options - Proposital Anti Data-Loss
+
+local StringLimiterLength: number = 100
+
+local TableLimiter: boolean = true 
+local TableExceeded: number = 5
 
 --// Common Functions
 
@@ -39,9 +48,63 @@ end
 
 local function GetNewParameters(...) : any --// Anti Data-Loss Proposital Client
 	local Args = {...}
+	
+	local Counts = {}
+	
+	local function VerifyTable(Table, BaseGUID)
+		local function ResetCount()
+			Counts = {}	
+		end
+		
+		for Key, Value in pairs(Table) do
+			if typeof(Value) ~= "table" then continue end
 
+			local GUID = nil
+
+			if not BaseGUID then
+				GUID = HttpService:GenerateGUID()
+				Counts[GUID] = 0
+			end
+
+			local CurrentGUID = BaseGUID or GUID
+			Counts[CurrentGUID] += 1 
+
+			if Counts[CurrentGUID] >= TableExceeded then
+				return true
+			end
+
+			local Response = VerifyTable(Value, CurrentGUID)
+
+			if Response then
+				ResetCount()				
+				return true
+			end
+		end
+		
+		ResetCount()		
+		return false
+	end
+	
+	local function GetArgParameter(Arg: any)
+		if typeof(Arg) == "string" then
+			if utf8.len(Arg) == nil then
+				return "255"
+			elseif #Arg >= StringLimiterLength then
+				return string.sub(Arg, 1, StringLimiterLength)
+			end
+		end
+		
+		if typeof(Arg) == "table" and TableLimiter then
+			if VerifyTable(Arg) then return {} end
+		end
+		
+		if Arg ~= Args then return 1 end
+		
+		return Args
+	end
+	
 	for Index, Arg in ipairs(Args) do
-		local ToIndex = if (typeof(Arg) == "string" and utf8.len(Arg) == nil) then "255" elseif Arg ~= Arg then 1 else Arg
+		local ToIndex = GetArgParameter(Arg)
 		Args[Index] = ToIndex
 	end
 
