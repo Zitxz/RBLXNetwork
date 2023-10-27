@@ -98,7 +98,7 @@ local function GetNewParameters(...) : any --// Anti Data-Loss Proposital Client
 			if VerifyTable(Arg) then return {} end
 		end
 		
-		if Arg ~= Args then return 1 end
+		if Arg ~= Arg then return 1 end
 		
 		return Args
 	end
