@@ -37,7 +37,7 @@ local TableExceeded: number = 5
 
 local function GetRemote(RemoteType: string, RemoteName: string) : Instance?
 	local CurrentRemote: Instance? = MyRemotes[RemoteType][RemoteName]
-	
+
 	if not CurrentRemote then
 		warn(`Remote {RemoteType}: {RemoteName} has not found`)
 		return
@@ -48,14 +48,14 @@ end
 
 local function GetNewParameters(...) : any --// Anti Data-Loss Proposital Client
 	local Args = {...}
-	
+
 	local Counts = {}
-	
+
 	local function VerifyTable(Table, BaseGUID)
 		local function ResetCount()
 			Counts = {}	
 		end
-		
+
 		for Key, Value in pairs(Table) do
 			if typeof(Value) ~= "table" then continue end
 
@@ -80,11 +80,11 @@ local function GetNewParameters(...) : any --// Anti Data-Loss Proposital Client
 				return true
 			end
 		end
-		
+
 		ResetCount()		
 		return false
 	end
-	
+
 	local function GetArgParameter(Arg: any)
 		if typeof(Arg) == "string" then
 			if utf8.len(Arg) == nil then
@@ -93,16 +93,16 @@ local function GetNewParameters(...) : any --// Anti Data-Loss Proposital Client
 				return string.sub(Arg, 1, StringLimiterLength)
 			end
 		end
-		
+
 		if typeof(Arg) == "table" and TableLimiter then
 			if VerifyTable(Arg) then return {} end
 		end
-		
+
 		if Arg ~= Arg then return 1 end
-		
-		return Args
+
+		return Arg
 	end
-	
+
 	for Index, Arg in ipairs(Args) do
 		local ToIndex = GetArgParameter(Arg)
 		Args[Index] = ToIndex
@@ -130,7 +130,7 @@ function Network:InvokeServer(RemoteName: string, ...) : any
 	local Remote = GetRemote("Functions", RemoteName)
 
 	if not Remote then return end
-	
+
 	return Remote:InvokeServer(GetNewParameters(...))
 end
 
@@ -138,7 +138,7 @@ function Network:FireAllClients(RemoteName: string, ...)
 	local Remote = GetRemote("Events", RemoteName)
 
 	if not Remote then return end
-	
+
 	Remote:FireAllClients(...)
 end
 
@@ -153,24 +153,24 @@ end
 function Network:CreateConnectionOf(Type: string, RemoteName: string, Function: <a>(a) -> (), ...)
 	local Remote: Instance = GetRemote(Type, RemoteName)
 	local ConnectionType: string = "On" .. self.Current .. (Type == "Events" and "Event" or "Invoke")
-	
+
 	local AdditionalArgs: {any} = {...}
-	
+
 	if not Remote then return end
-		
+
 	if Type == "Events" then --// Remote Events
-		
+
 		Remote[ConnectionType]:Connect(function(...)
 			Function(unpack(AdditionalArgs), ...)
 		end)
-		
+
 		return
 	end
-	
+
 	--// Remote Functions
-	
+
 	Remote[ConnectionType] = function(...)
-		Function(unpack(AdditionalArgs), ...)
+		Function(AdditionalArgs[1], AdditionalArgs[2], ...)
 	end
 end
 
@@ -225,7 +225,7 @@ end
 function Network:Init(RemoteFolder: Folder) 
 	self.RemotesFolder = RemoteFolder
 	self.Current = RunService:IsClient() and "Client" or "Server"
-	
+
 	print("Inited: " .. self.Current)
 
 	return ClientServer[self.Current](Network)
